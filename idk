@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PrintProfit — 3D Print Business Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="logo">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">Print<strong>Profit</strong></span>
+    </div>
+    <nav class="main-nav">
+      <button class="nav-btn active" data-tab="calculator">Calculator</button>
+      <button class="nav-btn" data-tab="sales">Sales Log</button>
+      <button class="nav-btn" data-tab="dashboard">Dashboard</button>
+    </nav>
+    <div class="header-stats">
+      <span class="hs-label">Total Revenue</span>
+      <span class="hs-value" id="headerRevenue">$0.00</span>
+    </div>
+  </header>
+
+  <main class="app-body">
+
+    <!-- ===== TAB: CALCULATOR ===== -->
+    <section class="tab-panel active" id="tab-calculator">
+      <div class="panel-title">
+        <h2>Cost & Price Calculator</h2>
+        <p>Enter your print details and get an instant recommended sale price.</p>
+      </div>
+
+      <div class="calc-grid">
+
+        <!-- LEFT: Inputs -->
+        <div class="card calc-inputs">
+          <h3 class="card-heading">Print Details</h3>
+
+          <div class="form-group">
+            <label>Print Name</label>
+            <input type="text" id="printName" placeholder="e.g. Dragon Figurine" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Filament Used (g)</label>
+              <input type="number" id="filamentGrams" placeholder="0" min="0" step="0.1"/>
+            </div>
+            <div class="form-group">
+              <label>Filament Cost ($/kg)</label>
+              <input type="number" id="filamentCostPerKg" placeholder="25" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Print Time (hours)</label>
+              <input type="number" id="printHours" placeholder="0" min="0" step="0.25"/>
+            </div>
+            <div class="form-group">
+              <label>Electricity ($/kWh)</label>
+              <input type="number" id="electricityRate" placeholder="0.12" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Printer Wattage (W)</label>
+              <input type="number" id="printerWatts" placeholder="200" min="0"/>
+            </div>
+            <div class="form-group">
+              <label>Post-Processing Time (hrs)</label>
+              <input type="number" id="postTime" placeholder="0" min="0" step="0.25"/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Labor Rate ($/hr)</label>
+              <input type="number" id="laborRate" placeholder="15" min="0" step="0.5"/>
+            </div>
+            <div class="form-group">
+              <label>Other Costs ($)</label>
+              <input type="number" id="otherCosts" placeholder="0" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Failure Rate (%)</label>
+            <input type="range" id="failureRate" min="0" max="50" value="10" />
+            <span class="range-label" id="failureLabel">10%</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Profit Margin (%)</label>
+              <input type="range" id="profitMargin" min="10" max="300" value="50" />
+              <span class="range-label" id="marginLabel">50%</span>
+            </div>
+            <div class="form-group">
+              <label>Platform Fee (%)</label>
+              <input type="number" id="platformFee" placeholder="0" min="0" max="30" step="0.5"/>
+            </div>
+          </div>
+
+          <button class="btn-primary full-width" id="calcBtn">Calculate Price</button>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div class="card calc-results">
+          <h3 class="card-heading">Pricing Breakdown</h3>
+
+          <div class="result-empty" id="resultEmpty">
+            <span class="empty-icon">◈</span>
+            <p>Fill in the details and hit Calculate</p>
+          </div>
+
+          <div class="result-content hidden" id="resultContent">
+            <div class="price-hero">
+              <span class="ph-label">Recommended Price</span>
+              <span class="ph-price" id="recoPrice">$0.00</span>
+            </div>
+
+            <div class="breakdown-list">
+              <div class="bl-item">
+                <span>Filament Cost</span>
+                <span id="bFilament">$0.00</span>
+              </div>
+              <div class="bl-item">
+                <span>Electricity Cost</span>
+                <span id="bElectricity">$0.00</span>
+              </div>
+              <div class="bl-item">
+                <span>Labor Cost</span>
+                <span id="bLabor">$0.00</span>
+              </div>
+              <div class="bl-item">
+                <span>Failure Buffer</span>
+                <span id="bFailure">$0.00</span>
+              </div>
+              <div class="bl-item">
+                <span>Other Costs</span>
+                <span id="bOther">$0.00</span>
+              </div>
+              <div class="bl-item bl-subtotal">
+                <span>Total Cost</span>
+                <span id="bTotal">$0.00</span>
+              </div>
+              <div class="bl-item">
+                <span>Profit (margin)</span>
+                <span id="bProfit">$0.00</span>
+              </div>
+              <div class="bl-item">
+                <span>Platform Fee</span>
+                <span id="bPlatform">$0.00</span>
+              </div>
+            </div>
+
+            <div class="price-tiers">
+              <h4>Price Tiers</h4>
+              <div class="tiers-row">
+                <div class="tier budget">
+                  <span class="tier-label">Budget</span>
+                  <span class="tier-val" id="tierBudget">$0</span>
+                  <span class="tier-sub">Break-even</span>
+                </div>
+                <div class="tier standard active-tier">
+                  <span class="tier-label">Standard</span>
+                  <span class="tier-val" id="tierStandard">$0</span>
+                  <span class="tier-sub">Recommended</span>
+                </div>
+                <div class="tier premium">
+                  <span class="tier-label">Premium</span>
+                  <span class="tier-val" id="tierPremium">$0</span>
+                  <span class="tier-sub">High-end</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button class="btn-secondary" id="saveToLibraryBtn">Save to Library</button>
+              <button class="btn-primary" id="logSaleBtn">Log a Sale →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Print Library -->
+      <div class="card library-card" id="libraryCard">
+        <div class="library-header">
+          <h3 class="card-heading">Print Library</h3>
+          <input type="text" id="librarySearch" placeholder="Search prints…" />
+        </div>
+        <div class="library-empty hidden" id="libraryEmpty">
+          <p>No prints saved yet. Calculate a price and save it!</p>
+        </div>
+        <div class="library-grid" id="libraryGrid"></div>
+      </div>
+
+    </section>
+
+    <!-- ===== TAB: SALES LOG ===== -->
+    <section class="tab-panel" id="tab-sales">
+      <div class="panel-title">
+        <h2>Sales Log</h2>
+        <p>Record every sale and track your income.</p>
+      </div>
+
+      <div class="sales-layout">
+
+        <div class="card sale-form-card">
+          <h3 class="card-heading">Log New Sale</h3>
+
+          <div class="form-group">
+            <label>Item Name</label>
+            <input type="text" id="saleItem" placeholder="e.g. Dragon Figurine" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Quantity Sold</label>
+              <input type="number" id="saleQty" value="1" min="1"/>
+            </div>
+            <div class="form-group">
+              <label>Sale Price Each ($)</label>
+              <input type="number" id="salePrice" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cost Each ($)</label>
+              <input type="number" id="saleCost" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+            <div class="form-group">
+              <label>Platform / Fee ($)</label>
+              <input type="number" id="saleFee" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Sale Date</label>
+              <input type="date" id="saleDate" />
+            </div>
+            <div class="form-group">
+              <label>Platform / Marketplace</label>
+              <input type="text" id="salePlatform" placeholder="Etsy, Local, etc." />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Notes</label>
+            <input type="text" id="saleNotes" placeholder="Optional note…" />
+          </div>
+
+          <button class="btn-primary full-width" id="logSaleFormBtn">Add Sale</button>
+        </div>
+
+        <div class="card sales-table-card">
+          <div class="table-header-row">
+            <h3 class="card-heading">Recent Sales</h3>
+            <div class="table-controls">
+              <input type="text" id="salesSearch" placeholder="Search sales…" />
+              <button class="btn-ghost" id="exportCsvBtn">Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="sales-table" id="salesTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Cost</th>
+                  <th>Profit</th>
+                  <th>Platform</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="salesBody">
+              </tbody>
+            </table>
+            <div class="table-empty hidden" id="salesEmpty">
+              <p>No sales logged yet.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== TAB: DASHBOARD ===== -->
+    <section class="tab-panel" id="tab-dashboard">
+      <div class="panel-title">
+        <h2>Dashboard</h2>
+        <p>Your business at a glance.</p>
+      </div>
+
+      <div class="dash-stats">
+        <div class="stat-card">
+          <span class="stat-icon">💰</span>
+          <span class="stat-val" id="dRevenue">$0.00</span>
+          <span class="stat-label">Total Revenue</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">📈</span>
+          <span class="stat-val" id="dProfit">$0.00</span>
+          <span class="stat-label">Total Profit</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🧾</span>
+          <span class="stat-val" id="dSales">0</span>
+          <span class="stat-label">Total Sales</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">📦</span>
+          <span class="stat-val" id="dUnits">0</span>
+          <span class="stat-label">Units Sold</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">⚡</span>
+          <span class="stat-val" id="dMargin">0%</span>
+          <span class="stat-label">Avg Margin</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🏆</span>
+          <span class="stat-val" id="dBestItem">—</span>
+          <span class="stat-label">Best Seller</span>
+        </div>
+      </div>
+
+      <div class="dash-charts">
+
+        <div class="card chart-card">
+          <h3 class="card-heading">Revenue by Month</h3>
+          <canvas id="revenueChart" height="200"></canvas>
+          <div class="chart-empty hidden" id="revenueChartEmpty"><p>No data yet.</p></div>
+        </div>
+
+        <div class="card chart-card">
+          <h3 class="card-heading">Top Items by Revenue</h3>
+          <div id="topItemsChart" class="bar-chart-custom"></div>
+          <div class="chart-empty hidden" id="topItemsEmpty"><p>No data yet.</p></div>
+        </div>
+
+      </div>
+
+      <div class="card goals-card">
+        <h3 class="card-heading">Monthly Goals</h3>
+        <div class="goals-row">
+          <div class="form-group">
+            <label>Revenue Goal ($)</label>
+            <input type="number" id="goalRevenue" placeholder="500" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Profit Goal ($)</label>
+            <input type="number" id="goalProfit" placeholder="200" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Units Goal</label>
+            <input type="number" id="goalUnits" placeholder="20" min="0"/>
+          </div>
+          <button class="btn-secondary" id="saveGoalsBtn">Save Goals</button>
+        </div>
+        <div class="goals-progress" id="goalsProgress"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
